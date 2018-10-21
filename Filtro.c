@@ -36,5 +36,3 @@ uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32
 	}
 	return imgResult;
 }
-
-b

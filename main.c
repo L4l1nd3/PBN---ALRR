@@ -9,7 +9,7 @@
 
 
 
-
+NUM_THREAD = 2;
 
 //Signature	2 bytes	0000h	'BM'
 //FileSize	4 bytes	0002h	File size in bytes
@@ -23,7 +23,7 @@
 int main(int argc, char** argv) {
 	BMPImage_t* image = loadBMP("FLAG_B24.bmp");
 	BMPImage_t imageResult;
-	uint8* imgFilter;
+	uint8* imgFilter = (uint8*)malloc(sizeof(uint8)*image->infoHeader.width *image->infoHeader.height);
 	printf("Tamño fichero: %d \n", image->header.fileSize);
 	printf("Data Offset: %d \n", image->header.dataOffset);
 	printf("size %d\n"
@@ -48,11 +48,24 @@ int main(int argc, char** argv) {
 			image->infoHeader.yPixelPerM,
 			image->infoHeader.colorsUsed,
 			image->infoHeader.importantColors);
-
+	/*
 	imgFilter = aplicarFiltro(image->pixels, mask,
 							  image->infoHeader.width,
 							  image->infoHeader.height,
 							  3, 3);
+	*/
+
+	int n = image->infoHeader.height / NUM_THREAD;
+	unsigned char* res[2];
+	
+	
+	for (int i = 0; i < NUM_THREAD; i++) {
+		res[i] = aplicarFiltro(image->pixels + (i * image->infoHeader.width * 3 * (n-1)), mask,
+			image->infoHeader.width ,
+			(image->infoHeader.height / NUM_THREAD)+1,
+			3, 3);
+	}
+
 
 	imageResult.header.signature[0] = 'B';
 	imageResult.header.signature[1] = 'M';
@@ -61,20 +74,25 @@ int main(int argc, char** argv) {
 	imageResult.header.dataOffset = 14 + 40 + 0; // +0 porque no tenemos paleta pero hay que tenerlo en cuenta
 
 	imageResult.infoHeader.size = 40;
-	imageResult.infoHeader.width = image->infoHeader.width;
+	imageResult.infoHeader.width = image->infoHeader.width ;
 	imageResult.infoHeader.height = image->infoHeader.height;
 	imageResult.infoHeader.planes = 1;
 	imageResult.infoHeader.bpp = 24;
 	imageResult.infoHeader.compresion = 0;
-	imageResult.infoHeader.imagenSize = image->infoHeader.width * image->infoHeader.height * 3;
+	imageResult.infoHeader.imagenSize = image->infoHeader.width* image->infoHeader.height * 3;
 	imageResult.infoHeader.xPixelPerM = 0;
 	imageResult.infoHeader.yPixelPerM = 0;
 	imageResult.infoHeader.colorsUsed = 0;
 	imageResult.infoHeader.importantColors = 0;
-	imageResult.pixels = imgFilter;
-	imageResult.palette = NULL;
 
-	writeBMP(&imageResult, "imageResult.bmp");
+	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * image->infoHeader.width * image->infoHeader.height*3);
+
+	memcpy(data, res[0], image->infoHeader.width * (image->infoHeader.height / 2)*3);
+	memcpy(data + (image->infoHeader.width * (image->infoHeader.height / 2) * 3), res[1], image->infoHeader.width * (image->infoHeader.height / 2) * 3);
+	imageResult.pixels = data;
+	imageResult.palette = NULL;
+	
+	writeBMP(&imageResult, "asdf.bmp");
 	/*	FILE* fichero;
 	int numBytesRead = 0;
 	int actualFileSize = 0;

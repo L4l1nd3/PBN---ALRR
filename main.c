@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
 	for (int i = 0; i < NUM_THREAD; i++) {
 		res[i] = aplicarFiltro(image->pixels + (i * image->infoHeader.width * 3 * (n-1)), mask,
 			image->infoHeader.width ,
-			n + 2,
+			n + 1,
 			3, 3);
 	}
 
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
 	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * image->infoHeader.width * image->infoHeader.height*3);
 	for (int i = 0; i < NUM_THREAD; i++) {
 		
-		memcpy(data + (i * image->infoHeader.width * 3 *(n)), res[i], image->infoHeader.width * (n + 2) * 3);
+		memcpy(data + (i * image->infoHeader.width * 3 *(n - 1)), res[i] + i *image->infoHeader.width * 3, image->infoHeader.width * (n + 1) * 3);
 	}
 	
 	//memcpy(data + (image->infoHeader.width * (image->infoHeader.height / 2) * 3), res[1], image->infoHeader.width * (image->infoHeader.height / 2) * 3);

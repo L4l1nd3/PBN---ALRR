@@ -16,9 +16,9 @@ uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32
 	uint8* imgResult = (uint8*)malloc(3 * imgW*imgH);
 	memset(imgResult, 0, 3 * imgW*imgH); //inicializa todo a cero
 
-	for (i = 0; i < imgH-1; i++)
+	for (i = 1; i < imgH-1; i++)
 	{
-		for (j = 0; j < imgW-1; j++)
+		for (j = 1; j < imgW-1; j++)
 		{
 			pixResult.R = pixResult.G = pixResult.B = 0;
 			for (y=-1; y < 2 ; y++)

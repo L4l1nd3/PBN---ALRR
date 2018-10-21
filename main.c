@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "BMPImageLoader.h"
-#include "filtro.h"
+#include "Filtro.h"
+
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 
 
@@ -18,59 +22,59 @@
 
 int main(int argc, char** argv) {
 	BMPImage_t* image = loadBMP("FLAG_B24.bmp");
+	BMPImage_t imageResult;
+	uint8* imgFilter;
 	printf("Tamño fichero: %d \n", image->header.fileSize);
 	printf("Data Offset: %d \n", image->header.dataOffset);
 	printf("size %d\n"
-		"width %d\n"
-		"height %\n"
-		"planes %\n"
-		"bpp %\n"
-		"compression %d\n"
-		"imageSize %d\n"
-		"xPixelsPerM %d\n"
-		"yPixelsPerM %d\n"
-		"colorUsed %d\n"
-		"importantColors%d\n",
-		image->infoHeader.size,
-		image->infoHeader.width,
-		image->infoHeader.height,
-		image->infoHeader.planes,
-		image->infoHeader.bpp,
-		image->infoHeader.compresion,
-		image->infoHeader.imagenSize,
-		image->infoHeader.xPixelPerM,
-		image->infoHeader.yPixelPerM,
-		image->infoHeader.colorsUsed,
-		image->infoHeader.importantColors);
+			"width %d\n"
+			"height %\n"
+			"planes %\n"
+			"bpp %\n"
+			"compression %d\n"
+			"imageSize %d\n"
+			"xPixelsPerM %d\n"
+			"yPixelsPerM %d\n"
+			"colorUsed %d\n"
+			"importantColors%d\n",
+			image->infoHeader.size,
+			image->infoHeader.width,
+			image->infoHeader.height,
+			image->infoHeader.planes,
+			image->infoHeader.bpp,
+			image->infoHeader.compresion,
+			image->infoHeader.imagenSize,
+			image->infoHeader.xPixelPerM,
+			image->infoHeader.yPixelPerM,
+			image->infoHeader.colorsUsed,
+			image->infoHeader.importantColors);
 
-	uint8* imgFilter; // deberia estar declarado arriba
-	BMPImage_t imageResult;
+	imgFilter = aplicarFiltro(image->pixels, mask,
+							  image->infoHeader.width,
+							  image->infoHeader.height,
+							  3, 3);
 
-	imgFilter = aplicarFiltro(image->pixels, mask, image->infoHeader.width, image->infoHeader.height, 3, 3);
+	imageResult.header.signature[0] = 'B';
+	imageResult.header.signature[1] = 'M';
+	imageResult.header.fileSize = image->infoHeader.width * image->infoHeader.height * 3 + 14 + 40 + 0; // +0 porque no tenemos paleta pero hay que tenerlo en cuenta
+	imageResult.header.reserved = 0;
+	imageResult.header.dataOffset = 14 + 40 + 0; // +0 porque no tenemos paleta pero hay que tenerlo en cuenta
 
-	imageResult.header.signature[0] = "B";
-	imageResult.header.signature[1] = "M";
-	imageResult.header.fileSize = image->infoHeader.width * image->infoHeader.height * 3 + 14 + 40 + 0;
-	imageResult.header.reserved = "0";
-	imageResult.header.dataOffset = 14 + 40 + 0;
-	
-	imageResult.infoHeader.size = image->infoHeader.width * image->infoHeader.height * 3;
+	imageResult.infoHeader.size = 40;
 	imageResult.infoHeader.width = image->infoHeader.width;
 	imageResult.infoHeader.height = image->infoHeader.height;
 	imageResult.infoHeader.planes = 1;
 	imageResult.infoHeader.bpp = 24;
-	imageResult.infoHeader.compresion=0;
-	imageResult.infoHeader.imagenSize = image->infoHeader.width + image->infoHeader.height*3;
-	imageResult.infoHeader.xPixelPerM=0;
-	imageResult.infoHeader.yPixelPerM=0;
-	imageResult.infoHeader.colorsUsed=0;
-	imageResult.infoHeader.importantColors=0;
-
-
+	imageResult.infoHeader.compresion = 0;
+	imageResult.infoHeader.imagenSize = image->infoHeader.width * image->infoHeader.height * 3;
+	imageResult.infoHeader.xPixelPerM = 0;
+	imageResult.infoHeader.yPixelPerM = 0;
+	imageResult.infoHeader.colorsUsed = 0;
+	imageResult.infoHeader.importantColors = 0;
 	imageResult.pixels = imgFilter;
 	imageResult.palette = NULL;
 
-	writeBMP(image, "prueba.bmp");
+	writeBMP(&imageResult, "imageResult.bmp");
 	/*	FILE* fichero;
 	int numBytesRead = 0;
 	int actualFileSize = 0;

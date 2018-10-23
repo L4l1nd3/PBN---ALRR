@@ -55,14 +55,16 @@ int main(int argc, char** argv) {
 							  3, 3);
 	*/
 
-	int n = image->infoHeader.height / NUM_THREAD;
+	int filas_por_thread = image->infoHeader.height / NUM_THREAD;
+	int bytes_por_fila = image->infoHeader.width * 3;
+
 	unsigned char* res[2];
 	
 	
 	for (int i = 0; i < NUM_THREAD; i++) {
-		res[i] = aplicarFiltro(image->pixels + (i * image->infoHeader.width * 3 * (n-1)), mask,
+		res[i] = aplicarFiltro(image->pixels + (i * bytes_por_fila * (filas_por_thread-1)), mask,
 			image->infoHeader.width ,
-			n + 1,
+			filas_por_thread + 1,
 			3, 3);
 	}
 
@@ -88,90 +90,14 @@ int main(int argc, char** argv) {
 	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * image->infoHeader.width * image->infoHeader.height*3);
 	for (int i = 0; i < NUM_THREAD; i++) {
 		
-		memcpy(data + (i * image->infoHeader.width * 3 *(n - 1)), res[i] + i *image->infoHeader.width * 3, image->infoHeader.width * (n + 1) * 3);
+		//|| i == NUM_THREAD + 1
+		//CUIDADADO: 0/0 = 0 pero deberia ser indeterminacion, nos vale el 0 pero compilador? standard? otro 0/2 core dump
+		memcpy(data + (i * bytes_por_fila *(filas_por_thread - 1)), res[i] + i/i * bytes_por_fila, (filas_por_thread + 1) * bytes_por_fila);
 	}
 	
-	//memcpy(data + (image->infoHeader.width * (image->infoHeader.height / 2) * 3), res[1], image->infoHeader.width * (image->infoHeader.height / 2) * 3);
 	imageResult.pixels = data;
 	imageResult.palette = NULL;
 	
 	writeBMP(&imageResult, "asdf.bmp");
-	/*	FILE* fichero;
-	int numBytesRead = 0;
-	int actualFileSize = 0;
-	long readPosition = 0;
-	char* buffer = (char*)malloc(3);
-	int* fileSize = (int*)malloc(sizeof(int));
-	int* dataOffset = (int*)malloc(sizeof(int));
-	//short* buffer2 = (short*)malloc(sizeof(short));
-	fichero = fopen("FLAG_B24.bmp", "r");
-	if (fichero == NULL) {
-	printf("ERROR: Fichero no encontrado");
-	getc(stdin);
-	exit(1);
-	}
-	if (buffer != NULL) {
-
-	numBytesRead = fread(buffer, 1, 2, fichero);
-	if (numBytesRead != 2) {
-	printf("ERROR: Lectura de datos erronea");
-	}
-	}
-	buffer[2] = '\0';
-	printf("Firma: %s\n",buffer);
-
-	if (!strncmp(buffer, "BM", 2)) {
-	printf("Fichero BMP correcto\n");
-	}
-	else {
-	printf("Fichero BMP mal formado");
-	getc(stdin);
-	exit(1);
-	}
-	if (fileSize != NULL) {
-	numBytesRead = fread(fileSize, 1, 4, fichero);
-	if (numBytesRead != 4) {
-	printf("ERROR: Lectura de datos erronea");
-	getc(stdin);
-	exit(1);
-	}
-	else {
-	printf("Tamaño Fichero: %d\n", *fileSize);
-	}
-	readPosition = (int)ftell(fichero);
-	fseek(fichero, 0, SEEK_END);
-	actualFileSize = (int)ftell(fichero);
-	fseek(fichero, readPosition, SEEK_SET);
-
-	if (actualFileSize != *fileSize) {
-	printf("ERROR: Tamaño Fichero real %d \n", actualFileSize);
-	getc(stdin);
-	exit(1);
-	}
-	}
-	fseek(fichero, 4, SEEK_CUR);
-	if (dataOffset != NULL) {
-	numBytesRead = fread(dataOffset, 1, 4, fichero);
-	if (numBytesRead != 4) {
-	printf("ERROR: Lectura de datos erronea");
-	getc(stdin);
-	exit(1);
-	}
-	else {
-	printf("DataOffset:  %d\n", *dataOffset);
-	}
-	}
-
-	//fread(buffer, 1, 2, fichero);
-	//fwrite("HolaMundo ficheros\n", 1, 19, fichero);
-	//fread();
-	//fwrite();
-	buffer[19] = '\0';
-	//printf(buffer);
-	getc(stdin);
-	fclose(fichero);
-	free(buffer);
-	free(fileSize);
-	//free(buffer2);*/
 	return 0;
 }

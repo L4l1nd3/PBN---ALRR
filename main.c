@@ -27,27 +27,27 @@ int main(int argc, char** argv) {
 	printf("Tamño fichero: %d \n", image->header.fileSize);
 	printf("Data Offset: %d \n", image->header.dataOffset);
 	printf("size %d\n"
-			"width %d\n"
-			"height %\n"
-			"planes %\n"
-			"bpp %\n"
-			"compression %d\n"
-			"imageSize %d\n"
-			"xPixelsPerM %d\n"
-			"yPixelsPerM %d\n"
-			"colorUsed %d\n"
-			"importantColors%d\n",
-			image->infoHeader.size,
-			image->infoHeader.width,
-			image->infoHeader.height,
-			image->infoHeader.planes,
-			image->infoHeader.bpp,
-			image->infoHeader.compresion,
-			image->infoHeader.imagenSize,
-			image->infoHeader.xPixelPerM,
-			image->infoHeader.yPixelPerM,
-			image->infoHeader.colorsUsed,
-			image->infoHeader.importantColors);
+		"width %d\n"
+		"height %\n"
+		"planes %\n"
+		"bpp %\n"
+		"compression %d\n"
+		"imageSize %d\n"
+		"xPixelsPerM %d\n"
+		"yPixelsPerM %d\n"
+		"colorUsed %d\n"
+		"importantColors%d\n",
+		image->infoHeader.size,
+		image->infoHeader.width,
+		image->infoHeader.height,
+		image->infoHeader.planes,
+		image->infoHeader.bpp,
+		image->infoHeader.compresion,
+		image->infoHeader.imagenSize,
+		image->infoHeader.xPixelPerM,
+		image->infoHeader.yPixelPerM,
+		image->infoHeader.colorsUsed,
+		image->infoHeader.importantColors);
 	/*
 	imgFilter = aplicarFiltro(image->pixels, mask,
 							  image->infoHeader.width,
@@ -59,14 +59,16 @@ int main(int argc, char** argv) {
 	int bytes_por_fila = image->infoHeader.width * 3;
 
 	unsigned char* res[2];
-	
-	
+
+
 	for (int i = 0; i < NUM_THREAD; i++) {
-		res[i] = aplicarFiltro(image->pixels + (i * bytes_por_fila * (filas_por_thread-1)), mask,
-			image->infoHeader.width ,
+		res[i] = aplicarFiltro(image->pixels + (i * bytes_por_fila * (filas_por_thread - 1)), mask,
+			image->infoHeader.width,
 			filas_por_thread + 1,
 			3, 3);
 	}
+
+
 
 
 	imageResult.header.signature[0] = 'B';
@@ -76,7 +78,7 @@ int main(int argc, char** argv) {
 	imageResult.header.dataOffset = 14 + 40 + 0; // +0 porque no tenemos paleta pero hay que tenerlo en cuenta
 
 	imageResult.infoHeader.size = 40;
-	imageResult.infoHeader.width = image->infoHeader.width ;
+	imageResult.infoHeader.width = image->infoHeader.width;
 	imageResult.infoHeader.height = image->infoHeader.height;
 	imageResult.infoHeader.planes = 1;
 	imageResult.infoHeader.bpp = 24;
@@ -87,17 +89,21 @@ int main(int argc, char** argv) {
 	imageResult.infoHeader.colorsUsed = 0;
 	imageResult.infoHeader.importantColors = 0;
 
-	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * image->infoHeader.width * image->infoHeader.height*3);
+	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * image->infoHeader.width * image->infoHeader.height * 3);
+	
 	for (int i = 0; i < NUM_THREAD; i++) {
-		
+
 		//|| i == NUM_THREAD + 1
 		//CUIDADADO: 0/0 = 0 pero deberia ser indeterminacion, nos vale el 0 pero compilador? standard? otro 0/2 core dump
-		memcpy(data + (i * bytes_por_fila *(filas_por_thread - 1)), res[i] + i/i * bytes_por_fila, (filas_por_thread + 1) * bytes_por_fila);
+		if(i ==0) memcpy(data, res[i] , (filas_por_thread) * bytes_por_fila);
+		else if(i == NUM_THREAD - 1) memcpy(data + (i * bytes_por_fila *(filas_por_thread)), res[i] +   bytes_por_fila, (filas_por_thread) * bytes_por_fila);
+		else
+		memcpy(data + (i * bytes_por_fila *(filas_por_thread - 1)), res[i] +  bytes_por_fila, (filas_por_thread - 1) * bytes_por_fila);
 	}
-	
+
 	imageResult.pixels = data;
 	imageResult.palette = NULL;
-	
+
 	writeBMP(&imageResult, "asdf.bmp");
 	return 0;
 }

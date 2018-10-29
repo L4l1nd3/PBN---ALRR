@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "BMPImageLoader.h"
 #include "Filtro.h"
+#include <Windows.h>
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
@@ -9,14 +10,12 @@
 
 
 
-NUM_THREAD = 2;
+NUM_THREAD = 10;
 
 //Signature	2 bytes	0000h	'BM'
 //FileSize	4 bytes	0002h	File size in bytes
 //reserved	4 bytes	0006h	unused(= 0)
 //DataOffset	4 bytes	000Ah	Offset from beginning of file to the beginning of the bitmap data
-
-
 
 
 
@@ -58,7 +57,7 @@ int main(int argc, char** argv) {
 	int filas_por_thread = image->infoHeader.height / NUM_THREAD;
 	int bytes_por_fila = image->infoHeader.width * 3;
 
-	unsigned char* res[2];
+	/*unsigned char* res[2];
 
 
 	for (int i = 0; i < NUM_THREAD; i++) {
@@ -66,9 +65,27 @@ int main(int argc, char** argv) {
 			image->infoHeader.width,
 			filas_por_thread + 1,
 			3, 3);
+	}*/
+
+	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * image->infoHeader.width * image->infoHeader.height * 3);
+
+	params* hParams = (params*)malloc(sizeof(params)*NUM_THREAD);
+	HANDLE* hThread = (HANDLE*)malloc(sizeof(HANDLE)*NUM_THREAD);
+
+	for (int i = 0; i < NUM_THREAD; i++) {
+		hParams[i].threadID = i;
+		hParams[i].imgW = image->infoHeader.width;
+		hParams[i].imgH = image->infoHeader.height / NUM_THREAD;
+		hParams[i].imgResult = data;
+		hParams[i].img = image->pixels;
+		hParams[i].filtro = mask;
+
+		hThread[i] = _beginthread(&aplicarFiltroConThreads, 0, &hParams[i]);
 	}
 
-
+	for (int i = 0; i < NUM_THREAD; i++) {
+		WaitForSingleObject(hThread[i], INFINITE);
+	}
 
 
 	imageResult.header.signature[0] = 'B';
@@ -89,17 +106,7 @@ int main(int argc, char** argv) {
 	imageResult.infoHeader.colorsUsed = 0;
 	imageResult.infoHeader.importantColors = 0;
 
-	unsigned char* data = (unsigned char*)malloc(sizeof(unsigned char) * image->infoHeader.width * image->infoHeader.height * 3);
 	
-	for (int i = 0; i < NUM_THREAD; i++) {
-
-		//|| i == NUM_THREAD + 1
-		//CUIDADADO: 0/0 = 0 pero deberia ser indeterminacion, nos vale el 0 pero compilador? standard? otro 0/2 core dump
-		if(i ==0) memcpy(data, res[i] , (filas_por_thread) * bytes_por_fila);
-		else if(i == NUM_THREAD - 1) memcpy(data + (i * bytes_por_fila *(filas_por_thread)), res[i] +   bytes_por_fila, (filas_por_thread) * bytes_por_fila);
-		else
-		memcpy(data + (i * bytes_por_fila *(filas_por_thread - 1)), res[i] +  bytes_por_fila, (filas_por_thread - 1) * bytes_por_fila);
-	}
 
 	imageResult.pixels = data;
 	imageResult.palette = NULL;

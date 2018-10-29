@@ -7,7 +7,7 @@ float mask[] = {
 	0.1,0.1,0.1,
 };
 
-uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32 filW, uint32 filH)
+/*uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32 filW, uint32 filH)
 {
 	int i, j, x, y;
 	pixel_t pixOrig;
@@ -89,8 +89,8 @@ uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32
 			/////////////////////////////
 
 			//LADO INFERIOR
-			else if (i == 0 /*&& j != 0 && j!= imgH*/)		
-			{
+			else if (i == 0 )		
+			/*{
 				for (y = 0; y < 2; y++)
 				{
 					for (x = -1; x < 2; x++)
@@ -105,8 +105,8 @@ uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32
 			////////////////////////////
 
 			//LADO SUPERIOR
-			else if (i == imgH /*&& j != 0 && j != imgH*/)		
-			{
+			else if (i == imgH)		
+			/*{
 
 				for (y = -1; y < 1; y++)
 				{
@@ -123,7 +123,7 @@ uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32
 			////////////////////////////
 
 			//LADO DERECHO
-			else if (j == imgW-1 /*&& i != 0 && i != imgH*/)
+			else if (j == imgW-1)
 			{
 				for (y = -1; y < 2; y++)
 				{
@@ -139,7 +139,7 @@ uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32
 			////////////////////////////
 
 			//LADO IZQUIERDO
-			else if (j == 0 /*&& j != 0 && j != imgH*/)
+			else if (j == 0)
 			{
 				for (y = -1; y < 2; y++)
 				{
@@ -174,6 +174,8 @@ uint8* aplicarFiltro(uint8* img, float* filtro, uint32 imgW, uint32 imgH, uint32
 	return imgResult;
 }
 
+*/
+
 void aplicarFiltroConThreads(void* parameters)
 {
 	params*datos = (params*)parameters;
@@ -181,13 +183,13 @@ void aplicarFiltroConThreads(void* parameters)
 	uint32 imgW = datos->imgW;
 	uint32 imgH = datos->imgH;
 	float* filtro = datos->filtro;
-	uint8* img = datos->img;
+	uint8* img = datos->img+3*imgH*imgW*datos->threadID;
 
 	int i, j, x, y;
 	pixel_t pixOrig;
 	pixel_t pixResult;
 
-	uint8* imgResult = /*Datos->imgResult + Datos->threadID*/ (uint8*)malloc(3 * imgW*imgH);
+	uint8* imgResult = datos->imgResult + datos->threadID*imgH*imgW*3;
 	memset(imgResult, 0, 3 * imgW*imgH); //inicializa todo a cero
 
 	for (i = 0; i < imgH; i++)

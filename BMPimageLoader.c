@@ -23,7 +23,7 @@ header_t loadHeader(FILE* f_bmp) {
 	numBytesRead = fread(&(header.fileSize), 1, 4, f_bmp);
 	//testear filesize
 	if (numBytesRead != 4)exit(1);
-	//testear tama?o(mirar main)
+	//testear tamaño(mirar main)
 
 	//leer reserved
 	numBytesRead = fread(&(header.reserved), 1, 4, f_bmp);
@@ -171,7 +171,7 @@ BMPImage_t* loadBMP(const char* path) {
 void write_header(FILE* fout, header_t header)
 {
 	//control de errores
-	fwrite(&(header.signature[0]), 1, 2, fout);
+	fwrite(&(header.signature[0]),1,2,fout);
 	fwrite(&(header.fileSize), 1, 4, fout);
 	fwrite(&(header.reserved), 1, 4, fout);
 	fwrite(&(header.dataOffset), 1, 4, fout);
@@ -233,13 +233,14 @@ void writeBMP(BMPImage_t* image, const char* path)
 	//abrir fichero
 	fout = fopen(path, "w");
 	//escribir cabecera
-	write_header(fout, image->header);
+	write_header(fout,image->header);
 	//escribir infoHeader
-	write_infoHeader(fout, image->infoHeader);
+	write_infoHeader(fout,image->infoHeader);
 	//escribir paleta
-	write_palette(fout, image->infoHeader, image->palette);
+	write_palette(fout,image->infoHeader,image->palette);
 	//escribir pixels
-	write_pixels(fout, image->infoHeader, image->pixels);
+	write_pixels(fout,image->infoHeader,image->pixels);
 	//cerrar fichero
 	fclose(fout);
 }
+
